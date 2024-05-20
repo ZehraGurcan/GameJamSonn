@@ -49,10 +49,7 @@ public class CharController : MonoBehaviour
         health -= 1;
     }
 
-    void giveDamage()
-    {
-
-    }
+    
 
 
 
@@ -95,7 +92,7 @@ public class CharController : MonoBehaviour
             {
                 animator.SetBool("isRunning", true);
                 isRunning = true;
-                runSpeed = 10;
+                runSpeed = 3;
 
 
             }
