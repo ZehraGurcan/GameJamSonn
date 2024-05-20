@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CharController : MonoBehaviour
@@ -21,7 +22,12 @@ public class CharController : MonoBehaviour
     public bool isGrounded = false;
     public bool isRunning;
     public int health;
-
+    public bool isAlive = true;
+    public bool isClimbing;
+    public int collects;
+    int climbUp = 10;
+    float moveY;
+    bool canJump = true;
     void Start()
     {
         health = 5;
@@ -30,14 +36,32 @@ public class CharController : MonoBehaviour
 
     void Update()
     {
-        camControl();
-        moveX = player.transform.position.x + (Input.GetAxis("Horizontal") * (speed + runSpeed) * Time.deltaTime);
-
-        if (isShooting == false)
+        if(isAlive == true)
         {
-            move();
+
+            if(health == 0) 
+            {
+                isAlive = false;
+            }
+            camControl();
+            moveX = player.transform.position.x + (Input.GetAxis("Horizontal") * (speed + runSpeed) * Time.deltaTime);
+            
+            moveY = player.transform.position.y + (Input.GetAxis("Vertical") * climbUp * Time.deltaTime);
+
+            if (isShooting == false)
+            {
+                move();
+            }
+            jump(); 
+            
+           
+            //Climbing();
         }
-        jump();
+        else
+        {
+
+        }
+        
 
 
     }
@@ -67,7 +91,7 @@ public class CharController : MonoBehaviour
     void jump()
     {
 
-        if (isGrounded == true)
+        if (isGrounded == true && canJump == true)
         {
             if (Input.GetKeyDown(KeyCode.W))
             {
@@ -134,6 +158,19 @@ public class CharController : MonoBehaviour
         }
     }
 
+    void Climbing()
+    {
+        if(isClimbing == true)
+        {
+            if (Input.GetAxis("Vertical") > 0)
+            {
+                animator.SetBool("isClimbing", true);
+                
+                player.transform.position = new Vector3(player.transform.position.x, moveY, 2.0f);
+            }
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
 
@@ -145,18 +182,49 @@ public class CharController : MonoBehaviour
             animator.SetBool("isJumping", false);
         }
 
+        if (collision.gameObject.tag == "enemy")
+        {
+            getDamage();
+            animator.SetTrigger("getDamage");
+        }
+        
+        
+        
+        if (collision.gameObject.tag == "collectable")
+        {
+            
+            collects++;
+            collision.IsDestroyed();
+            
+        }
+
 
 
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == "ground")
+        if (collision.gameObject.tag == "ground" && canJump == true)
         {
             isGrounded = false;
             animator.SetBool("isJumping", true);
         }
+
+        if (collision.gameObject.tag == "ladder")
+        {
+            isClimbing = false;
+            
+        }
     }
 
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "ladder")
+        {
+            isClimbing = true;
+            canJump = false;
+            Climbing();
+        }
+    }
 }
 
